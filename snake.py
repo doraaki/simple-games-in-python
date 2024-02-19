@@ -81,10 +81,19 @@ class Board:
         return new_position
 
 class Game:
-    def __init__(self, width=500, height=500, block_size_in_pixels=10, initial_body_part_count=5):
+    def __init__(self,
+                 width=500,
+                 height=500,
+                 block_size_in_pixels=10,
+                 initial_body_part_count=5,
+                 default_seconds_between_iterations=0.2):
         self.screen_width = width
         self.screen_height = height
         self.block_size_in_pixels = block_size_in_pixels
+
+        self.default_seconds_between_iterations = default_seconds_between_iterations
+        self.seconds_between_iterations = self.default_seconds_between_iterations
+
         self.board_width = self.screen_width // block_size_in_pixels
         self.board_height = self.screen_height // block_size_in_pixels
         self.board = Board(self.board_width, self.board_height)
@@ -123,9 +132,6 @@ class Game:
         new_head_position = self.board.move(self.snake.head_position, self.snake.orientation)
         food_in_front_of_snake = (self.food_position == new_head_position)
 
-        print(f"Food {self.food_position}")
-        print(f"Snake head {self.snake.head_position}")
-
         self.snake.move(new_head_position, food_in_front=food_in_front_of_snake)
         
         if food_in_front_of_snake:
@@ -134,21 +140,26 @@ class Game:
     def run(self):
         running = True
         while running:
-            time.sleep(0.1)
+            time.sleep(self.seconds_between_iterations)
             had_event = False
             # Did the user click the window close button?
+            self.seconds_between_iterations = self.default_seconds_between_iterations
+
             for event in pygame.event.get():
-                had_event = True
                 if event.type == pygame.QUIT:
                     running = False
-                
+            
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         self.snake.turn_left()
                     
                     if event.key == pygame.K_RIGHT:
                         self.snake.turn_right()
-            
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_UP]:
+                self.seconds_between_iterations = self.default_seconds_between_iterations / 5
+    
             self.run_game_iteration()
             self.draw()
             pygame.display.flip()
