@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pygame
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 from enum import Enum
 from collections import deque
 import time
@@ -41,6 +41,7 @@ class Snake:
                  orientation: Orientation,
                  board: Board):
         self.body_parts = deque(body_parts) # Use deque to efficiently move body forward
+        self.head_position = self.body_parts[-1]
         self.orientation = orientation
         self.board = board
     
@@ -50,14 +51,12 @@ class Snake:
     def turn_right(self):
         self.orientation = self.orientation.right()
 
-    def move(self, food_in_front=False):
+    def move(self, new_head_position: Coordinate, food_in_front=False):
         if not food_in_front:
             self.body_parts.popleft()
         
-        old_head_position = self.body_parts[-1]
-
-        new_head_position = self.board.move(old_head_position, self.orientation)
         self.body_parts.append(new_head_position)
+        self.head_position = new_head_position
 
 class Board:
     orientation_to_move_map = {
@@ -103,26 +102,34 @@ class Game:
 
     def generate_food(self):
         while True:
-            food_x = random.randint(0, self.screen_width) - 1
-            food_y = random.randint(0, self.screen_height) - 1
+            food_x = random.randint(1, self.board_width) - 1
+            food_y = random.randint(1, self.board_height) - 1
             if Coordinate(food_x, food_y) not in self.snake.body_parts:
                 return Coordinate(food_x, food_y)
+    
+    def draw_rect(self, coord: Coordinate, color: Tuple):
+        x = coord.x * self.block_size_in_pixels
+        y = coord.y * self.block_size_in_pixels
+        pygame.draw.rect(self.screen, color, [x,y,self.block_size_in_pixels,self.block_size_in_pixels])
     
     def draw(self):
         self.screen.fill(WHITE_RGB)
         for body_part in self.snake.body_parts:
-            screen_position_x = body_part.x * self.block_size_in_pixels
-            screen_position_y = body_part.y * self.block_size_in_pixels
-            pygame.draw.rect(self.screen,
-                             BLACK_RGB,
-                             [screen_position_x,screen_position_y,self.block_size_in_pixels,self.block_size_in_pixels])
+            self.draw_rect(body_part, BLACK_RGB)
 
-            pygame.draw.rect(self.screen,
-                             RED_RGB,
-                             [self.food_position.x,self.food_position.y,self.block_size_in_pixels,self.block_size_in_pixels])
+        self.draw_rect(self.food_position, RED_RGB)
     
     def run_game_iteration(self):
-        self.snake.move()
+        new_head_position = self.board.move(self.snake.head_position, self.snake.orientation)
+        food_in_front_of_snake = (self.food_position == new_head_position)
+
+        print(f"Food {self.food_position}")
+        print(f"Snake head {self.snake.head_position}")
+
+        self.snake.move(new_head_position, food_in_front=food_in_front_of_snake)
+        
+        if food_in_front_of_snake:
+            self.food_position = self.generate_food()
     
     def run(self):
         running = True
