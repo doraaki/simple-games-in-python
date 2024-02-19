@@ -5,10 +5,12 @@ from typing import List
 from enum import Enum
 from collections import deque
 import time
+import random
 pygame.init()
 
 WHITE_RGB = (255,255,255)
 BLACK_RGB = (0,0,0)
+RED_RGB = (255,0,0)
 
 @dataclass
 class Coordinate:
@@ -95,8 +97,17 @@ class Game:
 
         self.snake = Snake(initial_body_parts, initial_orientation, self.board)
 
+        self.food_position = self.generate_food()
+
         self.screen = pygame.display.set_mode([self.screen_width, self.screen_height])
 
+    def generate_food(self):
+        while True:
+            food_x = random.randint(0, self.screen_width) - 1
+            food_y = random.randint(0, self.screen_height) - 1
+            if Coordinate(food_x, food_y) not in self.snake.body_parts:
+                return Coordinate(food_x, food_y)
+    
     def draw(self):
         self.screen.fill(WHITE_RGB)
         for body_part in self.snake.body_parts:
@@ -105,6 +116,10 @@ class Game:
             pygame.draw.rect(self.screen,
                              BLACK_RGB,
                              [screen_position_x,screen_position_y,self.block_size_in_pixels,self.block_size_in_pixels])
+
+            pygame.draw.rect(self.screen,
+                             RED_RGB,
+                             [self.food_position.x,self.food_position.y,self.block_size_in_pixels,self.block_size_in_pixels])
     
     def run_game_iteration(self):
         self.snake.move()
