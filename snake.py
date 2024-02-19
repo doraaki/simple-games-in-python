@@ -99,6 +99,7 @@ class Game:
         self.screen.fill(WHITE_RGB)
     
     def draw(self):
+        self.screen.fill(WHITE_RGB)
         for body_part in self.snake.body_parts:
             screen_position_x = body_part.x * self.block_size_in_pixels
             screen_position_y = body_part.y * self.block_size_in_pixels
@@ -106,11 +107,13 @@ class Game:
                              BLACK_RGB,
                              [screen_position_x,screen_position_y,self.block_size_in_pixels,self.block_size_in_pixels])
     
+    def run_game_iteration(self):
+        self.snake.move()
+    
     def run(self):
         running = True
         while running:
             time.sleep(0.1)
-            self.draw()
             had_event = False
             # Did the user click the window close button?
             for event in pygame.event.get():
@@ -118,6 +121,8 @@ class Game:
                 if event.type == pygame.QUIT:
                     running = False
             
+            self.run_game_iteration()
+            self.draw()
             pygame.display.flip()
 
 
