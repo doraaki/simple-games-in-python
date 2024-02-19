@@ -34,6 +34,9 @@ class Orientation(Enum):
     
     def right(self) -> Orientation:
         return Orientation((self.value + 2) % 4 + 1)
+    
+    def opposite(self) -> Orientation:
+        return Orientation((self.value + 1) % 4 + 1)
 
 class Snake:
     def __init__(self,
@@ -81,6 +84,15 @@ class Board:
         return new_position
 
 class Game:
+    pygame_key_to_orientation_map = {
+        pygame.K_UP: Orientation.NORTH,
+        pygame.K_LEFT: Orientation.WEST,
+        pygame.K_DOWN: Orientation.SOUTH,
+        pygame.K_RIGHT: Orientation.EAST
+    }
+
+    orientation_to_pygame_key_map = {orientation:key for key, orientation in pygame_key_to_orientation_map.items()}
+
     def __init__(self,
                  width=500,
                  height=500,
@@ -148,16 +160,20 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            
+
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        self.snake.turn_left()
-                    
-                    if event.key == pygame.K_RIGHT:
-                        self.snake.turn_right()
+                    if event.key not in Game.pygame_key_to_orientation_map:
+                        continue
+
+                    new_orientation = Game.pygame_key_to_orientation_map[event.key]
+                    # Can't reverse direction
+                    if new_orientation == self.snake.orientation.opposite():
+                        continue
+                    self.snake.orientation = new_orientation
+                    break
 
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP]:
+            if keys[Game.orientation_to_pygame_key_map[self.snake.orientation]]:
                 self.seconds_between_iterations = self.default_seconds_between_iterations / 5
     
             self.run_game_iteration()
