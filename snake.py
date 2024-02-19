@@ -120,6 +120,7 @@ class Game:
         self.food_position = self.generate_food()
 
         self.screen = pygame.display.set_mode([self.screen_width, self.screen_height])
+        self.running = True
 
     def generate_food(self):
         while True:
@@ -142,6 +143,9 @@ class Game:
     
     def run_game_iteration(self):
         new_head_position = self.board.move(self.snake.head_position, self.snake.orientation)
+        if new_head_position in self.snake.body_parts:
+            self.running = False
+            return
         food_in_front_of_snake = (self.food_position == new_head_position)
 
         self.snake.move(new_head_position, food_in_front=food_in_front_of_snake)
@@ -150,8 +154,7 @@ class Game:
             self.food_position = self.generate_food()
     
     def run(self):
-        running = True
-        while running:
+        while self.running:
             time.sleep(self.seconds_between_iterations)
             had_event = False
             # Did the user click the window close button?
@@ -159,7 +162,7 @@ class Game:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    self.running = False
 
                 if event.type == pygame.KEYDOWN:
                     if event.key not in Game.pygame_key_to_orientation_map:
