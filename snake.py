@@ -28,10 +28,10 @@ class Orientation(Enum):
     EAST  = 4
 
     def left(self) -> Orientation:
-        return Orientation((self.value + 1) % 4)
+        return Orientation(self.value % 4 + 1)
     
     def right(self) -> Orientation:
-        return Orientation((self.value + 3) % 4)
+        return Orientation((self.value + 2) % 4 + 1)
 
 class Snake:
     def __init__(self,
@@ -59,9 +59,9 @@ class Snake:
 
 class Board:
     orientation_to_move_map = {
-        Orientation.NORTH : Coordinate(0 , 1),
+        Orientation.NORTH : Coordinate(0 , -1),
         Orientation.WEST  : Coordinate(-1, 0),
-        Orientation.SOUTH : Coordinate(0 ,-1),
+        Orientation.SOUTH : Coordinate(0 , 1),
         Orientation.EAST  : Coordinate(1 , 0)
     }
     def __init__(self, width, height):
@@ -92,12 +92,11 @@ class Game:
         initial_body_parts = [Coordinate(self.board_width // 2, self.board_height // 2)]
         for body_part in range(1, initial_body_part_count):
             initial_body_parts.append(initial_body_parts[-1] + Coordinate(1,0))
-        print(initial_body_parts)
+
         self.snake = Snake(initial_body_parts, initial_orientation, self.board)
 
         self.screen = pygame.display.set_mode([self.screen_width, self.screen_height])
-        self.screen.fill(WHITE_RGB)
-    
+
     def draw(self):
         self.screen.fill(WHITE_RGB)
         for body_part in self.snake.body_parts:
@@ -120,6 +119,13 @@ class Game:
                 had_event = True
                 if event.type == pygame.QUIT:
                     running = False
+                
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        self.snake.turn_left()
+                    
+                    if event.key == pygame.K_RIGHT:
+                        self.snake.turn_right()
             
             self.run_game_iteration()
             self.draw()
