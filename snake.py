@@ -80,25 +80,31 @@ class Board:
         return new_position
 
 class Game:
-    def __init__(self, width=500, height=500):
-        self.width = width
-        self.height = height
-        self.board = Board(self.width, self.height)
+    def __init__(self, width=500, height=500, block_size_in_pixels=10, initial_body_part_count=5):
+        self.screen_width = width
+        self.screen_height = height
+        self.block_size_in_pixels = block_size_in_pixels
+        self.board_width = self.screen_width // block_size_in_pixels
+        self.board_height = self.screen_height // block_size_in_pixels
+        self.board = Board(self.board_width, self.board_height)
         
         initial_orientation = Orientation.EAST
-        initial_body_parts = [Coordinate(self.width // 2, self.height // 2)]
-        INITIAL_BODY_PART_COUNT = 5
-        for body_part in range(1, INITIAL_BODY_PART_COUNT):
-            initial_body_parts.append(initial_body_parts[-1] + Coordinate(20,0))
+        initial_body_parts = [Coordinate(self.board_width // 2, self.board_height // 2)]
+        for body_part in range(1, initial_body_part_count):
+            initial_body_parts.append(initial_body_parts[-1] + Coordinate(1,0))
         print(initial_body_parts)
         self.snake = Snake(initial_body_parts, initial_orientation, self.board)
 
-        self.screen = pygame.display.set_mode([self.width, self.height])
+        self.screen = pygame.display.set_mode([self.screen_width, self.screen_height])
         self.screen.fill(WHITE_RGB)
     
     def draw(self):
         for body_part in self.snake.body_parts:
-            pygame.draw.rect(self.screen, BLACK_RGB, [body_part.x,body_part.y,20,20])
+            screen_position_x = body_part.x * self.block_size_in_pixels
+            screen_position_y = body_part.y * self.block_size_in_pixels
+            pygame.draw.rect(self.screen,
+                             BLACK_RGB,
+                             [screen_position_x,screen_position_y,self.block_size_in_pixels,self.block_size_in_pixels])
     
     def run(self):
         running = True
