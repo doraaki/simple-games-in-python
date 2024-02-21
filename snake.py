@@ -98,13 +98,17 @@ class Game:
                  height=500,
                  block_size_in_pixels=10,
                  initial_body_part_count=5,
-                 default_seconds_between_iterations=0.2):
+                 default_seconds_between_iterations=0.2,
+                 speedup_factor=5,
+                 key_held_count_needed_for_speedup=2):
         self.screen_width = width
         self.screen_height = height
         self.block_size_in_pixels = block_size_in_pixels
+        self.key_held_count_needed_for_speedup = key_held_count_needed_for_speedup
 
         self.default_seconds_between_iterations = default_seconds_between_iterations
         self.seconds_between_iterations = self.default_seconds_between_iterations
+        self.speedup_factor = speedup_factor
 
         self.board_width = self.screen_width // block_size_in_pixels
         self.board_height = self.screen_height // block_size_in_pixels
@@ -188,8 +192,8 @@ class Game:
             self.draw()
             pygame.display.flip()
             self.seconds_between_iterations = self.default_seconds_between_iterations
-            if self.speedup_counter > 2:
-                self.seconds_between_iterations /= 5
+            if self.speedup_counter > self.key_held_count_needed_for_speedup:
+                self.seconds_between_iterations /= self.speedup_factor
             time.sleep(self.seconds_between_iterations)
 
 
