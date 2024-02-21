@@ -177,17 +177,20 @@ class Game:
         else:
             self.speedup_counter = 0
 
+    def run_game_iteration(self):
+        self.move_snake()
+        
+
     def run(self):
         while self.running:
+            self.process_keys()
+            self.run_game_iteration()
+            self.draw()
+            pygame.display.flip()
             self.seconds_between_iterations = self.default_seconds_between_iterations
             if self.speedup_counter > 2:
                 self.seconds_between_iterations /= 5
             time.sleep(self.seconds_between_iterations)
-            
-            self.process_keys()
-            self.move_snake()
-            self.draw()
-            pygame.display.flip()
 
 
 
