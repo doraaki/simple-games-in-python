@@ -11,6 +11,7 @@ pygame.init()
 WHITE_RGB = (255,255,255)
 BLACK_RGB = (0,0,0)
 RED_RGB = (255,0,0)
+BLUE_RGB = (0,0,255)
 
 @dataclass
 class Coordinate:
@@ -123,6 +124,14 @@ class Game:
 
         self.speedup_counter = 0
 
+        self.score = 0
+        pygame.font.init()
+        self.font = pygame.font.Font(None, 36)
+    
+    def update_score(self):
+        score_text = self.font.render(f'Score: {self.score}', True, BLUE_RGB)
+        self.screen.blit(score_text, (30, 30))
+
     def generate_food(self):
         while True:
             food_x = random.randint(1, self.board_width) - 1
@@ -141,6 +150,7 @@ class Game:
             self.draw_rect(body_part, BLACK_RGB)
 
         self.draw_rect(self.food_position, RED_RGB)
+        self.update_score()
     
     def move_snake(self):
         new_head_position = self.board.move(self.snake.head_position, self.snake.orientation)
@@ -148,6 +158,8 @@ class Game:
             self.running = False
             return
         food_in_front_of_snake = (self.food_position == new_head_position)
+
+        self.score += food_in_front_of_snake
 
         self.snake.move(new_head_position, food_in_front=food_in_front_of_snake)
         
@@ -178,7 +190,12 @@ class Game:
 
     def run_game_iteration(self):
         self.move_snake()
-        
+    
+    def sleep_after_iteration(self):
+        self.seconds_between_iterations = self.default_seconds_between_iterations
+        if self.speedup_counter > self.key_held_count_needed_for_speedup:
+            self.seconds_between_iterations /= self.speedup_factor
+        time.sleep(self.seconds_between_iterations)
 
     def run(self):
         while self.running:
@@ -186,10 +203,7 @@ class Game:
             self.run_game_iteration()
             self.draw()
             pygame.display.flip()
-            self.seconds_between_iterations = self.default_seconds_between_iterations
-            if self.speedup_counter > self.key_held_count_needed_for_speedup:
-                self.seconds_between_iterations /= self.speedup_factor
-            time.sleep(self.seconds_between_iterations)
+            self.sleep_after_iteration()
 
 
 
