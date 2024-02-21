@@ -154,7 +154,11 @@ class Game:
             self.food_position = self.generate_food()
     
     def run(self):
+        speedup_counter = 0
         while self.running:
+            self.seconds_between_iterations = self.default_seconds_between_iterations
+            if speedup_counter > 2:
+                self.seconds_between_iterations /= 5
             time.sleep(self.seconds_between_iterations)
             had_event = False
             # Did the user click the window close button?
@@ -177,7 +181,9 @@ class Game:
 
             keys = pygame.key.get_pressed()
             if keys[Game.orientation_to_pygame_key_map[self.snake.orientation]]:
-                self.seconds_between_iterations = self.default_seconds_between_iterations / 5
+                speedup_counter += 1
+            else:
+                speedup_counter = 0
     
             self.run_game_iteration()
             self.draw()
