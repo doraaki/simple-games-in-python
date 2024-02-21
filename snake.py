@@ -122,6 +122,8 @@ class Game:
         self.screen = pygame.display.set_mode([self.screen_width, self.screen_height])
         self.running = True
 
+        self.speedup_counter = 0
+
     def generate_food(self):
         while True:
             food_x = random.randint(1, self.board_width) - 1
@@ -141,7 +143,7 @@ class Game:
 
         self.draw_rect(self.food_position, RED_RGB)
     
-    def run_game_iteration(self):
+    def move_snake(self):
         new_head_position = self.board.move(self.snake.head_position, self.snake.orientation)
         if new_head_position in self.snake.body_parts:
             self.running = False
@@ -153,39 +155,37 @@ class Game:
         if food_in_front_of_snake:
             self.food_position = self.generate_food()
     
+    def process_keys(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key not in Game.pygame_key_to_orientation_map:
+                    continue
+
+                new_orientation = Game.pygame_key_to_orientation_map[event.key]
+                # Can't reverse direction
+                if new_orientation == self.snake.orientation.opposite():
+                    continue
+                self.snake.orientation = new_orientation
+                break
+
+        keys = pygame.key.get_pressed()
+        if keys[Game.orientation_to_pygame_key_map[self.snake.orientation]]:
+            self.speedup_counter += 1
+        else:
+            self.speedup_counter = 0
+
     def run(self):
-        speedup_counter = 0
         while self.running:
             self.seconds_between_iterations = self.default_seconds_between_iterations
-            if speedup_counter > 2:
+            if self.speedup_counter > 2:
                 self.seconds_between_iterations /= 5
             time.sleep(self.seconds_between_iterations)
-            had_event = False
-            # Did the user click the window close button?
-            self.seconds_between_iterations = self.default_seconds_between_iterations
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-
-                if event.type == pygame.KEYDOWN:
-                    if event.key not in Game.pygame_key_to_orientation_map:
-                        continue
-
-                    new_orientation = Game.pygame_key_to_orientation_map[event.key]
-                    # Can't reverse direction
-                    if new_orientation == self.snake.orientation.opposite():
-                        continue
-                    self.snake.orientation = new_orientation
-                    break
-
-            keys = pygame.key.get_pressed()
-            if keys[Game.orientation_to_pygame_key_map[self.snake.orientation]]:
-                speedup_counter += 1
-            else:
-                speedup_counter = 0
-    
-            self.run_game_iteration()
+            
+            self.process_keys()
+            self.move_snake()
             self.draw()
             pygame.display.flip()
 
