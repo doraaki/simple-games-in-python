@@ -29,14 +29,15 @@ class Orientation(Enum):
     SOUTH = 3
     EAST  = 4
 
-    def left(self) -> Orientation:
-        return Orientation(self.value % 4 + 1)
-    
-    def right(self) -> Orientation:
-        return Orientation((self.value + 2) % 4 + 1)
-    
     def opposite(self) -> Orientation:
-        return Orientation((self.value + 1) % 4 + 1)
+        if self == Orientation.NORTH:
+            return Orientation.SOUTH
+        if self == Orientation.SOUTH:
+            return Orientation.NORTH
+        if self == Orientation.EAST:
+            return Orientation.WEST
+        if self == Orientation.WEST:
+            return Orientation.EAST
 
 class Snake:
     def __init__(self,
@@ -47,12 +48,6 @@ class Snake:
         self.head_position = self.body_parts[-1]
         self.orientation = orientation
         self.board = board
-    
-    def turn_left(self):
-        self.orientation = self.orientation.left()
-    
-    def turn_right(self):
-        self.orientation = self.orientation.right()
 
     def move(self, new_head_position: Coordinate, food_in_front=False):
         if not food_in_front:
