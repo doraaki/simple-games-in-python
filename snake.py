@@ -206,7 +206,6 @@ class Game:
             self.sleep_after_iteration()
 
 
-
 # Done! Time to quit.
 pygame.quit()
 
